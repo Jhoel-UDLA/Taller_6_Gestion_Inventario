@@ -1,52 +1,64 @@
-#include "funciones.h"
 #include <stdio.h>
+#include "funciones.h"
 
 int main() {
 
+    char nombres[MAX_PROD][MAX_NAME];
+    int tiempo_unitario[MAX_PROD];
+    int recursos_unitarios[MAX_PROD];
+    int demanda[MAX_PROD];
+
+    int numProductos = 0;
     int opcion;
 
     do {
-        printf("\n==================================\n");
-        printf("      GESTION DE INVENTARIO C\n");
-        printf("==================================\n");
-        printf("1. Ingresar Nuevo Producto\n");
-        printf("2. Calcular Precio Total\n");
-        printf("3. Encontrar Producto mas caro o barato\n");
-        printf("4. Calcular Precio Promedio\n");
-        printf("5. Buscar Producto por Nombre\n");
-        printf("6. Salir\n");
-        printf("==================================\n");
-
-        opcion = leerEnteroValidado("Seleccione una opcion: ", 1, 6);
+        printf("\n===== MENU =====\n");
+        printf("1. Ingresar producto\n");
+        printf("2. Editar producto\n");
+        printf("3. Eliminar producto\n");
+        printf("4. Mostrar productos\n");
+        printf("5. Calcular tiempo total\n");
+        printf("6. Calcular recursos totales\n");
+        printf("0. Salir\n");
+        opcion = leerEnteroPositivo("Seleccione opcion: ");
 
         switch (opcion) {
 
             case 1:
-                ingresar_datos();
+                ingresarProducto(nombres, tiempo_unitario, recursos_unitarios, demanda, &numProductos);
                 break;
 
             case 2:
-                calcular_total();
+                editarProducto(nombres, tiempo_unitario, recursos_unitarios, demanda, numProductos);
                 break;
 
             case 3:
-                encontrar_caro_barato();
+                eliminarProducto(nombres, tiempo_unitario, recursos_unitarios, demanda, &numProductos);
                 break;
 
             case 4:
-                calcular_promedio();
+                mostrarProductos(nombres, tiempo_unitario, recursos_unitarios, demanda, numProductos);
                 break;
 
             case 5:
-                buscar_producto();
+                printf("Tiempo total: %d\n", 
+                       calcularTiempo(tiempo_unitario, demanda, numProductos));
                 break;
 
             case 6:
-                printf("\nHasta luego. Adios\n");
+                printf("Recursos totales: %d\n", 
+                       calcularRecursos(recursos_unitarios, demanda, numProductos));
                 break;
+
+            case 0:
+                printf("Saliendo...\n");
+                break;
+
+            default:
+                printf("Opcion invalida.\n");
         }
 
-    } while (opcion != 6);
+    } while (opcion != 0);
 
     return 0;
 }
