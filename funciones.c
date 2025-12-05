@@ -1,136 +1,143 @@
 #include <stdio.h>
-#define MAXProductos 10
-#define MAXNOMBRE 50
+#include <string.h>
+#include "funciones.h"
 
-char nombresProductos[MAXProductos][MAXNOMBRE] = {0};
-float precios[MAXProductos] = {0.0f};
-int contProductos = 0;
 
-// Lee un entero validado de un archivo lecturas.c
-int leerEnteroValidado(const char *mensaje, int min, int max) {
-    int valor;
-    while (1) {
-        printf("%s", mensaje);
-        if (scanf("%d", &valor) == 1) {
+// Función para leer un entero válido
 
-            if (valor >= min && valor <= max)
-                return valor;
+int leerEnteroPositivo(const char *mensaje) {
+    int r, v;
 
-            printf("\nDebe estar entre %d y %d.\n", min, max);
-        } else {
-            printf("\nEntrada no valida. Debe ingresar un numero.\n");
-        }
+    printf("%s", mensaje);
+    r = scanf("%d", &v);
 
-        while (getchar() != '\n'); // Limpia el buffer
-    }
-}
-
-// Opción 1: Ingresar Datos
-int ingresar_datos() {
-
-    if (contProductos >= MAXProductos) {
-        printf("\nInventario lleno. El maximo es: %d productos.\n", MAXProductos);
-        return contProductos;
-    }
-
-    printf("\n--- Ingresar Nuevo Producto #%d ---\n", contProductos + 1);
-
-    printf("Nombre del producto: ");
-    if (scanf("%49s", nombresProductos[contProductos]) != 1) { 
+    while (r != 1 || v < 0) {
         while (getchar() != '\n');
-        printf("Error al leer el nombre.\n");
-        return contProductos;
+        printf("Entrada invalida. %s", mensaje);
+        r = scanf("%d", &v);
     }
 
-    printf("Precio de %s: ", nombresProductos[contProductos]);
-    if (scanf("%f", &precios[contProductos]) != 1) {
-        while (getchar() != '\n');
-        printf("Error al leer el precio.\n");
-        return contProductos;
-    }
-
-    contProductos++;
-    printf("Producto agregado con exito.\n");
-
-    return contProductos;
+    while (getchar() != '\n');
+    return v;
 }
 
-// Opción 2: Calcular precio total
-void calcular_total() {
-    if (contProductos == 0) {
-        printf("\nNo hay productos registrados.\n");
+
+// Leer cadena sin espacios
+
+void leerCadena(char destino[], int tam, const char *mensaje) {
+    printf("%s", mensaje);
+    scanf("%29s", destino);
+    while (getchar() != '\n');
+}
+
+
+// AGREGAR PRODUCTO
+
+void ingresarProducto(char nombres[][MAX_NAME], int tiempo[], int recursos[], int demanda[], int *numProd) {
+
+    if (*numProd >= MAX_PROD) {
+        printf("No se pueden agregar mas productos.\n");
         return;
     }
 
-    float total = 0;
-    for (int i = 0; i < contProductos; i++)
-        total += precios[i];
+    leerCadena(nombres[*numProd], MAX_NAME, "Nombre: ");
+    tiempo[*numProd] = leerEnteroPositivo("Tiempo por unidad: ");
+    recursos[*numProd] = leerEnteroPositivo("Recursos por unidad: ");
+    demanda[*numProd] = leerEnteroPositivo("Demanda: ");
 
-    printf("\nPrecio total del inventario: %.2f\n", total);
+    (*numProd)++;
+    printf("Producto agregado.\n");
 }
 
-// Opción 3: Encontrar el producto más caro y más barato
-void encontrar_caro_barato() {
-    if (contProductos == 0) {
-        printf("\nNo hay productos registrados.\n");
+
+// BUSCAR PRODUCTO POR NOMBRE
+
+int buscarProducto(char nombres[][MAX_NAME], int numProd, char nombre[]) {
+    for (int i = 0; i < numProd; i++) {
+        if (strcmp(nombres[i], nombre) == 0)
+            return i;
+    }
+    return -1;
+}
+
+
+// EDITAR PRODUCTO
+
+void editarProducto(char nombres[][MAX_NAME], int tiempo[], int recursos[], int demanda[], int numProd) {
+
+    char buscar[MAX_NAME];
+    leerCadena(buscar, MAX_NAME, "Nombre del producto a editar: ");
+
+    int pos = buscarProducto(nombres, numProd, buscar);
+    if (pos == -1) {
+        printf("Producto no encontrado.\n");
         return;
     }
 
-    int caro = 0, barato = 0;
+    leerCadena(nombres[pos], MAX_NAME, "Nuevo nombre: ");
+    tiempo[pos] = leerEnteroPositivo("Nuevo tiempo por unidad: ");
+    recursos[pos] = leerEnteroPositivo("Nuevos recursos por unidad: ");
+    demanda[pos] = leerEnteroPositivo("Nueva demanda: ");
 
-    for (int i = 1; i < contProductos; i++) {
-        if (precios[i] > precios[caro]) caro = i;
-        if (precios[i] < precios[barato]) barato = i;
-    }
-
-    printf("\nProducto mas caro: %s (%.2f)\n", nombresProductos[caro], precios[caro]);
-    printf("Producto mas barato: %s (%.2f)\n", nombresProductos[barato], precios[barato]);
+    printf("Producto editado.\n");
 }
 
-// Opción 4: Calcular precio promedio
-void calcular_promedio() {
-    if (contProductos == 0) {
-        printf("\nNo hay productos registrados.\n");
+
+// ELIMINAR PRODUCTO 
+
+void eliminarProducto(char nombres[][MAX_NAME], int tiempo[], int recursos[],
+    int demanda[], int *numProd) {
+
+    char buscar[MAX_NAME];
+    leerCadena(buscar, MAX_NAME, "Nombre del producto a eliminar: ");
+
+    int pos = buscarProducto(nombres, *numProd, buscar);
+    if (pos == -1) {
+        printf("Producto no encontrado.\n");
         return;
     }
 
-    float suma = 0;
-    for (int i = 0; i < contProductos; i++)
-        suma += precios[i];
+    for (int i = pos; i < *numProd - 1; i++) {
+        strcpy(nombres[i], nombres[i+1]);
+        tiempo[i] = tiempo[i+1];
+        recursos[i] = recursos[i+1];
+        demanda[i] = demanda[i+1];
+    }
 
-    printf("\nPrecio promedio: %.2f\n", suma / contProductos);
+    (*numProd)--;
+    printf("Producto eliminado.\n");
 }
 
-// OPpción 5: Buscar producto por nombre
-void buscar_producto() {
+// CALCULAR TIEMPO TOTAL
 
-    if (contProductos == 0) {
-        printf("\nNo hay productos registrados.\n");
+int calcularTiempo(int tiempo[], int demanda[], int numProd) {
+    int total = 0;
+    for (int i = 0; i < numProd; i++)
+        total += tiempo[i] * demanda[i];
+    return total;
+}
+
+// CALCULAR RECURSOS TOTALES
+
+int calcularRecursos(int recursos[], int demanda[], int numProd) {
+    int total = 0;
+    for (int i = 0; i < numProd; i++)
+        total += recursos[i] * demanda[i];
+    return total;
+}
+
+
+// MOSTRAR PRODUCTOS
+
+void mostrarProductos(char nombres[][MAX_NAME], int tiempo[], int recursos[],
+    int demanda[], int numProd) {
+
+    if (numProd == 0) {
+        printf("No hay productos registrados.\n");
         return;
     }
 
-    char buscado[MAXNOMBRE];
-    printf("\nIngrese el nombre del producto a buscar: ");
-    scanf("%49s", buscado);
-
-    int encontrado = 0;
-
-    for (int i = 0; i < contProductos; i++) {
-
-        int j = 0;
-        while (nombresProductos[i][j] == buscado[j] && nombresProductos[i][j] != '\0' && buscado[j] != '\0') {
-            j++;
-        }
-
-        if (nombresProductos[i][j] == '\0' && buscado[j] == '\0') {
-            printf("\nProducto encontrado: %s su precio es: %.2f\n",
-                   nombresProductos[i], precios[i]);
-            encontrado = 1;
-            break;
-        }
-    }
-
-    if (encontrado==0){
-        printf("\nProducto no encontrado.\n");
+    for (int i = 0; i < numProd; i++) {
+        printf("[%d] %s | tiempo:%d | recursos:%d | demanda:%d\n", i+1, nombres[i], tiempo[i], recursos[i], demanda[i]);
     }
 }
